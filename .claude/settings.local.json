@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(node -e \"const p = require\\('./node_modules/next-auth/package.json'\\); console.log\\(JSON.stringify\\(p.exports, null, 2\\)\\)\")",
+      "Bash(npx node:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npx next:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npx dotenv:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_ISomx9Bt2vjD@ep-empty-butterfly-a1kq1ah5.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" NEXT_PUBLIC_APP_URL=\"http://localhost:3000\" npx tsx:*)",
+      "Bash(npm run:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/)",
+      "Bash(curl:*)",
+      "Bash(netstat -tlnp)",
+      "Bash(NEXT_PUBLIC_APP_URL=\"http://localhost:3000\" npx tsx:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_ISomx9Bt2vjD@ep-empty-butterfly-a1kq1ah5.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx tsx:*)",
+      "Bash(npx tsx:*)",
+      "Bash(node:*)",
+      "Bash(pkill -f \"next dev\")"
+    ]
+  }
+}
