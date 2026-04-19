@@ -1,8 +1,11 @@
-import { auth } from '@/lib/auth-edge'
-import { NextResponse } from 'next/server'
+import { getToken } from 'next-auth/jwt'
+import { NextResponse, type NextRequest } from 'next/server'
 
 /**
- * Role-based route protection middleware using NextAuth v5.
+ * Role-based route protection middleware.
+ *
+ * Uses next-auth/jwt getToken() directly — no NextAuth config, no Prisma,
+ * no providers. This keeps the Edge Function bundle well under Vercel's 1 MB limit.
  *
  * Route ACL:
  *  /issuer/*   → ADMIN, ISSUER only  (redirect EARNER → /earner)
@@ -11,30 +14,33 @@ import { NextResponse } from 'next/server'
  *  /verify/*   → Public (no auth)
  *  /login      → Public; redirect authenticated users to their dashboard
  */
-export default auth((req) => {
-  const session = req.auth
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
+
+  const token = await getToken({
+    req,
+    secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+  })
+
+  const role = token?.role as string | undefined
 
   // ── /login is always public; redirect authenticated users to their dashboard
   if (pathname === '/login') {
-    if (session?.user) {
-      const role = session.user.role
+    if (token) {
       const dest = role === 'ISSUER' || role === 'ADMIN' ? '/issuer' : '/earner'
       return NextResponse.redirect(new URL(dest, req.url))
     }
     return NextResponse.next()
   }
 
-  // ── Unauthenticated access to any other matched route ────────────────────
-  if (!session?.user) {
+  // ── Unauthenticated access to any other matched route
+  if (!token) {
     const loginUrl = new URL('/login', req.url)
     loginUrl.searchParams.set('callbackUrl', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
-  const { role } = session.user
-
-  // ── Role mismatch redirects ───────────────────────────────────────────────
+  // ── Role mismatch redirects
   if (pathname.startsWith('/issuer') && role !== 'ADMIN' && role !== 'ISSUER') {
     return NextResponse.redirect(new URL('/earner', req.url))
   }
@@ -44,11 +50,9 @@ export default auth((req) => {
   }
 
   return NextResponse.next()
-})
+}
 
 export const config = {
-  // Apply middleware to all routes except Next.js internals, static assets,
-  // public pages (verify), and API routes that handle their own auth (credentials, verify, auth).
   matcher: [
     '/((?!_next/static|_next/image|favicon.ico|verify|api/verify|api/auth|api/credentials|public).*)',
   ],
