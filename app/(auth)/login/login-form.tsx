@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { signIn } from 'next-auth/react'
+import { signIn, getSession } from 'next-auth/react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { sendOtp } from '@/app/actions/auth'
@@ -65,10 +65,16 @@ export default function LoginForm() {
       })
 
       if (!result || result.error) {
-        setError('Invalid or expired code. Please request a new one.')
+        setError('Invalid or expired code. Go back and request a new one.')
       } else {
-        // Navigate; middleware handles role-based routing
-        router.push(callbackUrl)
+        // Resolve role-aware destination: use callbackUrl if explicitly set,
+        // otherwise route by role so issuers don't bounce through /earner first.
+        const session = await getSession()
+        const role = (session?.user as { role?: string } | undefined)?.role
+        const dest = callbackUrl !== '/earner'
+          ? callbackUrl
+          : (role === 'ISSUER' || role === 'ADMIN' ? '/issuer' : '/earner')
+        router.push(dest)
         router.refresh()
       }
     } catch {

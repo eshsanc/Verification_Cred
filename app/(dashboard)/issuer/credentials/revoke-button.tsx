@@ -10,24 +10,34 @@ interface RevokeButtonProps {
 }
 
 /**
- * Inline revoke button with a confirmation dialog.
+ * Inline revoke button with a confirmation step and inline error feedback.
  * On confirmation, calls the revokeCredential server action and refreshes the page.
  */
 export function RevokeButton({ badgeId, credentialName }: RevokeButtonProps) {
   const [confirming, setConfirming] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   async function handleRevoke() {
     setLoading(true)
+    setError(null)
     const result = await revokeCredential(badgeId)
     if (result.success) {
       router.refresh()
     } else {
-      alert(result.error ?? 'Failed to revoke credential')
+      setError(result.error ?? 'Failed to revoke')
+      setLoading(false)
+      setConfirming(false)
     }
-    setLoading(false)
-    setConfirming(false)
+  }
+
+  if (error) {
+    return (
+      <span className="text-xs text-red-600" title={error}>
+        {error.length > 30 ? error.slice(0, 30) + '…' : error}
+      </span>
+    )
   }
 
   if (confirming) {

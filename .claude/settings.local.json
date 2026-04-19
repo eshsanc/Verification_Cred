@@ -18,7 +18,24 @@
       "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_ISomx9Bt2vjD@ep-empty-butterfly-a1kq1ah5.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx tsx:*)",
       "Bash(npx tsx:*)",
       "Bash(node:*)",
-      "Bash(pkill -f \"next dev\")"
+      "Bash(pkill -f \"next dev\")",
+      "Bash(echo \"exit: $?\")",
+      "Read(//usr/local/bin/**)",
+      "Read(//home/sanchit/.nvm/versions/**)",
+      "Bash(npx --version)",
+      "Bash(echo \"PID: $!\")",
+      "Bash(ip addr:*)",
+      "Bash(echo \"HTTP: $?\")",
+      "Bash(/mnt/c/Windows/System32/cmd.exe:*)",
+      "Bash(\"/mnt/c/Windows/System32/cmd.exe\" /c \"taskkill /PID 3588 /F\")",
+      "Bash(kill 3407)",
+      "Bash(\"/mnt/c/Program Files/nodejs/node.exe\" node_modules/next/dist/bin/next dev --port 3000)",
+      "Bash(break)",
+      "Bash(echo \"exit: $? size: $\\(wc -c < /tmp/login_page.html 2>/dev/null\\)\")",
+      "Read(//usr/bin/**)",
+      "Bash(ls ~/.nvm/versions/node/*/bin/node)",
+      "Bash('/mnt/c/Program Files/nodejs/node.exe' -e ' *)",
+      "Bash(npx vercel *)"
     ]
   }
 }

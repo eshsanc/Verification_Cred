@@ -1,9 +1,11 @@
 'use server'
 
 import { createHash, randomInt } from 'crypto'
+import { headers } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { sendOtpEmail } from '@/lib/email'
 import { emailSchema } from '@/lib/validators'
+import { rateLimit } from '@/lib/rate-limit'
 
 /**
  * Generates and emails a 6-digit OTP for the given email address.
@@ -21,6 +23,20 @@ export async function sendOtp(email: string): Promise<{ success: boolean; messag
   }
 
   const normalizedEmail = parsed.data.email
+
+  // Rate limit: 5 OTP requests per email per 10 minutes
+  const rl = rateLimit(`otp:${normalizedEmail}`, 5, 600)
+  if (!rl.success) {
+    return { success: false, message: 'Too many requests. Please wait before requesting another code.' }
+  }
+
+  // Also rate limit by IP: 10 OTP requests per IP per 10 minutes
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  const ipRl = rateLimit(`otp-ip:${ip}`, 10, 600)
+  if (!ipRl.success) {
+    return { success: false, message: 'Too many requests from your network. Please try again later.' }
+  }
 
   // Find or create user
   let user = await prisma.user.findUnique({ where: { email: normalizedEmail } })

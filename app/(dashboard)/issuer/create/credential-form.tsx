@@ -184,12 +184,20 @@ function BatchCSVForm() {
       return
     }
 
+    // 5 MB limit — prevents browser hangs on huge files
+    if (file.size > 5 * 1024 * 1024) {
+      setParseError('File too large. Maximum size is 5 MB.')
+      return
+    }
+
     const reader = new FileReader()
     reader.onload = (ev) => {
       const text = ev.target?.result as string
       const parsed = parseCSV(text)
       if (parsed.length === 0) {
         setParseError('No data rows found. Check the CSV format.')
+      } else if (parsed.length > 500) {
+        setParseError(`CSV contains ${parsed.length} rows. Maximum is 500 per batch.`)
       } else {
         setRows(parsed)
       }
@@ -237,7 +245,10 @@ function BatchCSVForm() {
       {/* Preview table */}
       {rows.length > 0 && (
         <div className="space-y-3">
-          <p className="text-sm font-medium text-gray-700">{rows.length} row(s) ready to import</p>
+          <p className="text-sm font-medium text-gray-700">
+            {rows.length} row{rows.length !== 1 ? 's' : ''} ready to import
+            {rows.length > 10 ? ' (showing first 10 below)' : ''}
+          </p>
           <div className="overflow-x-auto rounded-md border border-gray-200">
             <table className="min-w-full divide-y divide-gray-200 text-xs">
               <thead className="bg-gray-50">

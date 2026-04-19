@@ -21,8 +21,15 @@ export default async function CredentialsListPage({ searchParams }: PageProps) {
     ? (rawStatus as Status)
     : 'ALL'
 
+  // Scope to the first IssuerProfile (MVP: one issuer per deployment)
+  const issuerProfile = await prisma.issuerProfile.findFirst({ select: { id: true } })
+  const issuerId = issuerProfile?.id
+
   const credentials = await prisma.issuedCredential.findMany({
-    where: statusFilter !== 'ALL' ? { status: statusFilter } : {},
+    where: {
+      ...(issuerId ? { issuerId } : {}),
+      ...(statusFilter !== 'ALL' ? { status: statusFilter } : {}),
+    },
     orderBy: { issuedAt: 'desc' },
     include: {
       recipient: { select: { email: true, name: true } },

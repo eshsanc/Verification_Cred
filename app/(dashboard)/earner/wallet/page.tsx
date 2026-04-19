@@ -53,6 +53,7 @@ export default async function WalletPage() {
               status={cred.status}
               isPublic={cred.isPublic}
               verifyUrl={`${APP_URL}/verify/${cred.badgeId}`}
+              jsonLd={cred.jsonLd}
             />
           ))}
         </div>

@@ -194,21 +194,21 @@ Each phase must be completed and validated before proceeding to the next.
 ## Phase 6: Security Hardening & Polish
 
 ### 6.1 Security
-- [ ] Rate limiting on `/api/verify/*` and `/claim/*` endpoints
-- [ ] Audit: confirm no private keys in client bundles (check build output)
-- [ ] Verify all Zod validation is server-side (not just client)
-- [ ] Enforce HTTPS-only cookies in NextAuth config
-- [ ] Rate limit OTP attempts per email
+- [x] Rate limiting on `/api/verify/*` and `/claim/*` endpoints
+- [x] Audit: confirm no private keys in client bundles (check build output)
+- [x] Verify all Zod validation is server-side (not just client)
+- [x] Enforce HTTPS-only cookies in NextAuth config
+- [x] Rate limit OTP attempts per email
 
 ### 6.2 Error Handling
-- [ ] Error boundary components for dashboard and public pages
-- [ ] User-friendly messages: expired OTP, already claimed, invalid badge, revoked credential
-- [ ] Loading skeletons for async data fetches
+- [x] Error boundary components for dashboard and public pages
+- [x] User-friendly messages: expired OTP, already claimed, invalid badge, revoked credential
+- [x] Loading skeletons for async data fetches
 
 ### 6.3 Testing
-- [ ] Unit: Ed25519 sign/verify round-trip
-- [ ] Unit: JSON-LD builder output matches OB 3.0 schema
-- [ ] Unit: CSV parser validates and rejects bad rows
-- [ ] Unit: Zod schemas accept valid / reject invalid inputs
-- [ ] E2E: OTP login flow
-- [ ] E2E: Issue -> Claim -> Verify full lifecycle
+- [x] Unit: Ed25519 sign/verify round-trip
+- [x] Unit: JSON-LD builder output matches OB 3.0 schema
+- [x] Unit: CSV parser validates and rejects bad rows
+- [x] Unit: Zod schemas accept valid / reject invalid inputs
+- [ ] E2E: OTP login flow (requires Playwright + running server)
+- [ ] E2E: Issue -> Claim -> Verify full lifecycle (requires Playwright + running server)

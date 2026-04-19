@@ -9,12 +9,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export default async function IssuerDashboardPage() {
   const session = await auth()
 
-  // Fetch issuer stats
+  // Scope stats to the first IssuerProfile (MVP: one issuer per deployment)
+  const issuerProfile = await prisma.issuerProfile.findFirst({ select: { id: true } })
+  const issuerId = issuerProfile?.id
+
   const [total, pending, claimed, revoked] = await Promise.all([
-    prisma.issuedCredential.count(),
-    prisma.issuedCredential.count({ where: { status: 'PENDING' } }),
-    prisma.issuedCredential.count({ where: { status: 'CLAIMED' } }),
-    prisma.issuedCredential.count({ where: { status: 'REVOKED' } }),
+    prisma.issuedCredential.count({ where: issuerId ? { issuerId } : {} }),
+    prisma.issuedCredential.count({ where: issuerId ? { issuerId, status: 'PENDING' } : { status: 'PENDING' } }),
+    prisma.issuedCredential.count({ where: issuerId ? { issuerId, status: 'CLAIMED' } : { status: 'CLAIMED' } }),
+    prisma.issuedCredential.count({ where: issuerId ? { issuerId, status: 'REVOKED' } : { status: 'REVOKED' } }),
   ])
 
   const stats = [

@@ -2,8 +2,10 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { rateLimit } from '@/lib/rate-limit'
 
 export interface ClaimResult {
   success: boolean
@@ -21,23 +23,40 @@ export async function claimCredential(badgeId: string): Promise<void> {
   const session = await auth()
   if (!session?.user) redirect('/login')
 
+  // Rate limit: 10 claim attempts per user per hour
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  const rl = rateLimit(`claim:${session.user.id ?? ip}`, 10, 3600)
+  if (!rl.success) redirect('/earner/wallet')
+
   const credential = await prisma.issuedCredential.findUnique({
     where: { badgeId },
-    select: { status: true },
+    select: { status: true, recipient: { select: { email: true } } },
   })
 
   if (!credential) redirect('/earner/wallet')
 
   if (credential.status !== 'PENDING') redirect('/earner/wallet')
 
-  await prisma.issuedCredential.update({
-    where: { badgeId },
+  // Verify the authenticated user's email matches the intended recipient.
+  // This prevents a user who has the claim URL from stealing another person's credential.
+  if (credential.recipient.email.toLowerCase() !== session.user.email.toLowerCase()) {
+    redirect('/earner/wallet')
+  }
+
+  // Atomic update: WHERE clause ensures status is still PENDING at write time,
+  // preventing a double-claim race condition.
+  const updated = await prisma.issuedCredential.updateMany({
+    where: { badgeId, status: 'PENDING' },
     data: {
       status: 'CLAIMED',
       recipientId: session.user.id,
       isPublic: true,
     },
   })
+
+  // If count is 0 the credential was claimed between our read and write — treat as already claimed
+  if (updated.count === 0) redirect('/earner/wallet')
 
   revalidatePath('/earner/wallet')
   revalidatePath('/earner')

@@ -28,6 +28,7 @@ export interface CredentialCardProps {
   status: Status
   isPublic: boolean
   verifyUrl: string
+  jsonLd: unknown
 }
 
 export function CredentialCard({
@@ -42,6 +43,7 @@ export function CredentialCard({
   status,
   isPublic: initialIsPublic,
   verifyUrl,
+  jsonLd,
 }: CredentialCardProps) {
   const [isPublic, setIsPublic] = useState(initialIsPublic)
   const [toggling, setToggling] = useState(false)
@@ -191,7 +193,7 @@ export function CredentialCard({
             </button>
             {jsonExpanded && (
               <pre className="mt-2 rounded-md bg-gray-50 border border-gray-200 p-3 text-xs text-gray-600 overflow-x-auto whitespace-pre-wrap break-all">
-                {JSON.stringify({ badgeId, name, issuerName, issuedAt, status }, null, 2)}
+                {JSON.stringify(jsonLd, null, 2)}
               </pre>
             )}
           </div>

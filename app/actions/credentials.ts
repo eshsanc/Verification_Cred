@@ -140,8 +140,19 @@ export interface BatchResult {
  *
  * @param rows - Pre-validated CSV rows from the client
  */
+const BATCH_LIMIT = 500
+
 export async function batchCreateCredentials(rows: BatchRow[]): Promise<BatchResult> {
   await assertIssuer()
+
+  if (rows.length > BATCH_LIMIT) {
+    return {
+      total: rows.length,
+      succeeded: 0,
+      failed: rows.length,
+      errors: [{ row: 0, email: '', error: `Batch exceeds maximum of ${BATCH_LIMIT} rows. Split into smaller files.` }],
+    }
+  }
 
   const issuerProfile = await getIssuerProfile()
   const result: BatchResult = { total: rows.length, succeeded: 0, failed: 0, errors: [] }
@@ -241,11 +252,14 @@ export async function revokeCredential(badgeId: string): Promise<RevokeResult> {
   try {
     await assertIssuer()
 
+    const issuerProfile = await getIssuerProfile()
+
     const credential = await prisma.issuedCredential.findUnique({
       where: { badgeId },
     })
 
     if (!credential) return { success: false, error: 'Credential not found' }
+    if (credential.issuerId !== issuerProfile.id) return { success: false, error: 'Forbidden' }
     if (credential.status === 'REVOKED') return { success: false, error: 'Already revoked' }
 
     await prisma.issuedCredential.update({
