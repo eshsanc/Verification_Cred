@@ -136,8 +136,11 @@ export default async function VerifyPage({ params }: Props) {
 
   if (!credential) notFound()
 
-  // Private credentials are not publicly accessible — return 404 to avoid info leakage.
-  if (!credential.isPublic && credential.status === 'CLAIMED') notFound()
+  // Only publicly shared claimed credentials are accessible — everything else is 404.
+  if (!credential.isPublic || credential.status !== 'CLAIMED') {
+    // Still allow REVOKED to be publicly verifiable so third parties can check validity.
+    if (credential.status !== 'REVOKED') notFound()
+  }
 
   // Run signature verification (server-side, never exposed to client)
   let signatureValid = false

@@ -11,13 +11,29 @@ export default async function IssuerDashboardPage() {
 
   // Scope stats to the first IssuerProfile (MVP: one issuer per deployment)
   const issuerProfile = await prisma.issuerProfile.findFirst({ select: { id: true } })
-  const issuerId = issuerProfile?.id
+
+  if (!issuerProfile) {
+    return (
+      <div className="p-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Issuer Dashboard</h1>
+        </div>
+        <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-6 text-sm text-yellow-800">
+          <strong>Setup required:</strong> No issuer profile found. Run{' '}
+          <code className="font-mono bg-yellow-100 px-1 rounded">npm run db:seed</code> to create
+          a test issuer profile, then reload this page.
+        </div>
+      </div>
+    )
+  }
+
+  const issuerId = issuerProfile.id
 
   const [total, pending, claimed, revoked] = await Promise.all([
-    prisma.issuedCredential.count({ where: issuerId ? { issuerId } : {} }),
-    prisma.issuedCredential.count({ where: issuerId ? { issuerId, status: 'PENDING' } : { status: 'PENDING' } }),
-    prisma.issuedCredential.count({ where: issuerId ? { issuerId, status: 'CLAIMED' } : { status: 'CLAIMED' } }),
-    prisma.issuedCredential.count({ where: issuerId ? { issuerId, status: 'REVOKED' } : { status: 'REVOKED' } }),
+    prisma.issuedCredential.count({ where: { issuerId } }),
+    prisma.issuedCredential.count({ where: { issuerId, status: 'PENDING' } }),
+    prisma.issuedCredential.count({ where: { issuerId, status: 'CLAIMED' } }),
+    prisma.issuedCredential.count({ where: { issuerId, status: 'REVOKED' } }),
   ])
 
   const stats = [

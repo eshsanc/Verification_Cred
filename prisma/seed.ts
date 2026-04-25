@@ -18,7 +18,7 @@ ed.etc.sha512Sync = (...m: Uint8Array[]) => {
 }
 
 const prisma = new PrismaClient()
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3002'
 
 // ── Inline sign helpers (mirrors lib/crypto.ts — no TS path aliases in tsx) ──
 
